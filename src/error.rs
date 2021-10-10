@@ -1,6 +1,6 @@
+use quick_xml::de::DeError;
 use thiserror::Error;
 use zip::result::ZipError;
-use quick_xml::de::DeError;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -18,5 +18,5 @@ pub enum Error {
     UnitParseError(String),
     #[error("Failed to parse data as string.")]
     #[allow(dead_code)]
-    ZipStringParseError(#[from] std::io::Error)
+    ZipStringParseError(#[from] std::io::Error),
 }

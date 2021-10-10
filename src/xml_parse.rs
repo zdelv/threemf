@@ -1,54 +1,72 @@
-use serde::Deserialize;
+use crate::triangle::Triangle;
+use crate::vertex::Vertex;
+use serde::{Deserialize, Deserializer};
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
-pub struct Vertex {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32
+pub struct Vertices<T> {
+    pub vertex: T,
+}
+
+// TODO: Put this into a wrapper macro
+impl<T> Vertices<T> {
+    fn deserialize<'de, D>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: Deserialize<'de>,
+        D: Deserializer<'de>,
+    {
+        let wrapper = <Self as Deserialize>::deserialize(deserializer)?;
+        Ok(wrapper.vertex)
+    }
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
-pub struct Vertices {
-    #[serde(rename="vertex", default)]
-    pub data: Vec<Vertex>
+pub struct Triangles<T> {
+    pub triangle: T,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
-pub struct Triangle {
-    pub v1: usize,
-    pub v2: usize,
-    pub v3: usize
-}
-
-#[derive(Debug, Deserialize, PartialEq, Clone)]
-pub struct Triangles {
-    #[serde(rename="triangle", default)]
-    pub data: Vec<Triangle>
+// TODO: Put this into a wrapper macro
+impl<T> Triangles<T> {
+    fn deserialize<'de, D>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: Deserialize<'de>,
+        D: Deserializer<'de>,
+    {
+        let wrapper = <Self as Deserialize>::deserialize(deserializer)?;
+        Ok(wrapper.triangle)
+    }
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Mesh {
-    pub vertices: Vertices,
-    pub triangles: Triangles
+    #[serde(with = "Vertices", default)]
+    pub vertices: Vec<Vertex>,
+    #[serde(with = "Triangles", default)]
+    pub triangles: Vec<Triangle>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Object {
     pub id: usize,
     pub name: String,
-    #[serde(rename="type", default)]
+    #[serde(rename = "type", default)]
     pub otype: String,
-    pub mesh: Mesh
-}
-
-#[derive(Debug, Deserialize, PartialEq, Default)]
-pub struct Resources {
-    #[serde(rename="object", default)]
-    pub objects: Vec<Object>
+    pub mesh: Mesh,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct XMLModel {
-    pub resources: Resources,
-    pub unit: String
+pub struct Resources<T> {
+    pub object: T,
+}
+
+// TODO: Put this into a wrapper macro
+// Model is defined outside of this file, so we need to pub deserialize
+impl<T> Resources<T> {
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: Deserialize<'de>,
+        D: Deserializer<'de>,
+    {
+        let wrapper = <Self as Deserialize>::deserialize(deserializer)?;
+        Ok(wrapper.object)
+    }
 }

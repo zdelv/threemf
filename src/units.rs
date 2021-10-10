@@ -1,16 +1,16 @@
-use std::str::FromStr;
-use serde::Deserialize;
 use crate::error::Error;
+use serde::Deserialize;
+use std::str::FromStr;
 
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(rename_all="lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum Units {
     Meter,
     Centimeter,
     Millimeter,
     Foot,
     Inch,
-    Unknown
+    Unknown,
 }
 
 impl Units {
@@ -21,7 +21,7 @@ impl Units {
             "millimeters" => Self::Millimeter,
             "feet" => Self::Foot,
             "inches" => Self::Inch,
-            _ => Self::Unknown
+            _ => Self::Unknown,
         }
     }
 }

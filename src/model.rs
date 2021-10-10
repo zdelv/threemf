@@ -1,8 +1,8 @@
-use std::io::{Cursor, Read};
+use std::io::{BufReader, Cursor};
 
-use zip::ZipArchive;
-use quick_xml::de::{from_str};
+use quick_xml::de::from_reader;
 use serde::Deserialize;
+use zip::ZipArchive;
 
 use crate::error::Error;
 use crate::units::Units;
@@ -10,31 +10,40 @@ use crate::xml_parse::*;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Model {
-    resources: Resources,
-    pub unit: Units
+    pub unit: Units,
+    #[serde(rename = "resources", with = "Resources", default)]
+    pub objects: Vec<Object>,
 }
 
 impl Model {
     #[allow(dead_code)]
-    fn name(&self) -> &str {
-        return self.resources.objects[0].name.as_str()
+    pub fn name(&self) -> &str {
+        return self.objects[0].name.as_str();
     }
 
     #[allow(dead_code)]
-    fn vertices(&self) -> &[Vertex] {
-        return self.resources.objects[0].mesh.vertices.data.as_slice()
+    pub fn num_objects(&self) -> usize {
+        return self.objects.len();
     }
 
     #[allow(dead_code)]
-    fn triangles(&self) -> &[Triangle] {
-        return self.resources.objects[0].mesh.triangles.data.as_slice()
+    pub fn num_vertices(&self) -> usize {
+        return self.objects.iter().map(|d| d.mesh.vertices.len()).sum();
+    }
+
+    #[allow(dead_code)]
+    pub fn num_triangles(&self) -> usize {
+        return self.objects.iter().map(|d| d.mesh.triangles.len()).sum();
     }
 }
 
 impl Model {
     #[allow(dead_code)]
     pub fn empty() -> Self {
-        Model { resources: Resources::default(), unit: Units::Unknown }
+        Model {
+            objects: Vec::new(),
+            unit: Units::Unknown,
+        }
     }
 
     #[allow(dead_code)]
@@ -44,27 +53,22 @@ impl Model {
 
         // Go through the files within the archive and grab the first .model
         let mut model_file_name: String = String::new();
-
         for name in archive.file_names() {
             if name.contains(".model") {
                 model_file_name = String::from(name);
             }
         }
 
+        // If we didn't find a model, return an error
         if model_file_name.is_empty() {
-            return Err(Error::EmptyModelError)
+            return Err(Error::EmptyModelError);
         }
 
         // Grab our zip file
-        let mut zip_file = archive.by_name(model_file_name.as_str())?;
+        let zip_file = archive.by_name(model_file_name.as_str())?;
 
-        let mut string_data: String = String::new();
-        zip_file.read_to_string(&mut string_data)?;
-
-
-        let model: Model = from_str(string_data.as_str())?;
-
-        println!("{:?}", model);
+        // Parse the zipfile (using Serde and quick_xml)
+        let model: Model = from_reader(BufReader::new(zip_file))?;
 
         Ok(model)
     }
@@ -73,5 +77,11 @@ impl Model {
 #[test]
 fn create_model() {
     let model = Model::empty();
-    assert_eq!(Model { resources: Resources::default(), unit: Units::Unknown }, model)
+    assert_eq!(
+        Model {
+            objects: Vec::new(),
+            unit: Units::Unknown
+        },
+        model
+    )
 }
