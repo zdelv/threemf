@@ -44,4 +44,21 @@ mod tests {
         let data: &'static [u8] = include_bytes!("../data/test_fusion_multi.3mf");
         run_model_test(data)
     }
+
+    #[test]
+    fn test_from_file() {
+        let path = "data/test.3mf";
+        match Model::from_file(path) {
+            Ok(d) => {
+                println!("Objects: {}", d.num_objects());
+                println!("Vertices: {}", d.num_vertices());
+                println!("Triangles: {}", d.num_triangles());
+                assert!(true)
+            }
+            Err(e) => {
+                println!("{:#?}", e);
+                assert!(false)
+            }
+        }
+    }
 }

@@ -1,4 +1,5 @@
-use std::io::{BufReader, Cursor};
+use std::io::{BufReader, Cursor, Read, Seek};
+use std::path::Path;
 
 use quick_xml::de::from_reader;
 use serde::Deserialize;
@@ -47,10 +48,7 @@ impl Model {
     }
 
     #[allow(dead_code)]
-    pub fn from_raw_data(data: &[u8]) -> Result<Self, Error> {
-        let curs = Cursor::new(data);
-        let mut archive = ZipArchive::new(curs)?;
-
+    fn new<R: Read + Seek>(mut archive: ZipArchive<R>) -> Result<Self, Error> {
         // Go through the files within the archive and grab the first .model
         let mut model_file_name: String = String::new();
         for name in archive.file_names() {
@@ -71,6 +69,23 @@ impl Model {
         let model: Model = from_reader(BufReader::new(zip_file))?;
 
         Ok(model)
+    }
+
+    #[allow(dead_code)]
+    pub fn from_raw_data(data: &[u8]) -> Result<Self, Error> {
+        let curs = Cursor::new(data);
+        let archive = ZipArchive::new(curs)?;
+
+        Ok(Self::new(archive)?)
+    }
+
+    #[allow(dead_code)]
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+        let file = std::fs::File::open(path)?;
+
+        let archive = ZipArchive::new(file)?;
+
+        Ok(Self::new(archive)?)
     }
 }
 
