@@ -7,12 +7,12 @@ use zip::ZipArchive;
 
 use crate::error::Error;
 use crate::units::Units;
-use crate::xml_parse::*;
+use crate::xml_parse::Object;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Model {
     pub unit: Units,
-    #[serde(rename = "resources", with = "Resources", default)]
+    #[serde(rename = "resources", with = "crate::xml_parse::Resources", default)]
     pub objects: Vec<Object>,
 }
 
@@ -50,6 +50,7 @@ impl Model {
     #[allow(dead_code)]
     fn new<R: Read + Seek>(mut archive: ZipArchive<R>) -> Result<Self, Error> {
         // Go through the files within the archive and grab the first .model
+        // TODO: There is a better way to do this
         let mut model_file_name: String = String::new();
         for name in archive.file_names() {
             if name.contains(".model") {

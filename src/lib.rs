@@ -1,9 +1,16 @@
 pub mod error;
+pub mod mesh;
 pub mod model;
 pub mod triangle;
 pub mod units;
 pub mod vertex;
 pub mod xml_parse;
+
+pub use crate::mesh::Mesh;
+pub use crate::model::Model;
+pub use crate::triangle::Triangle;
+pub use crate::units::Units;
+pub use crate::vertex::Vertex;
 
 #[cfg(test)]
 mod tests {

@@ -1,5 +1,4 @@
-use crate::triangle::Triangle;
-use crate::vertex::Vertex;
+use crate::mesh::Mesh;
 use serde::{Deserialize, Deserializer};
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -9,7 +8,7 @@ pub struct Vertices<T> {
 
 // TODO: Put this into a wrapper macro
 impl<T> Vertices<T> {
-    fn deserialize<'de, D>(deserializer: D) -> Result<T, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<T, D::Error>
     where
         T: Deserialize<'de>,
         D: Deserializer<'de>,
@@ -26,7 +25,7 @@ pub struct Triangles<T> {
 
 // TODO: Put this into a wrapper macro
 impl<T> Triangles<T> {
-    fn deserialize<'de, D>(deserializer: D) -> Result<T, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<T, D::Error>
     where
         T: Deserialize<'de>,
         D: Deserializer<'de>,
@@ -34,14 +33,6 @@ impl<T> Triangles<T> {
         let wrapper = <Self as Deserialize>::deserialize(deserializer)?;
         Ok(wrapper.triangle)
     }
-}
-
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct Mesh {
-    #[serde(with = "Vertices", default)]
-    pub vertices: Vec<Vertex>,
-    #[serde(with = "Triangles", default)]
-    pub triangles: Vec<Triangle>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
